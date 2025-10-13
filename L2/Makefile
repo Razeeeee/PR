@@ -6,9 +6,9 @@ LOADER = gcc
 
 # opcje optymalizacji:
 # wersja do debugowania
-#OPT = -g -DDEBUG
+OPT = -g -DDEBUG
 # wersja zoptymalizowana do mierzenia czasu
-OPT = -O3
+#OPT = -O3
 
 # pliki naglowkowe
 INC = -I../pomiar_czasu
@@ -48,8 +48,19 @@ watki: watki.o
 watki.o: watki.c
 	$(CCOMP) -c $(OPT) watki.c $(INC) 
 
+# kompilacja program_exec wymaga program
+program_exec: program_exec.o program
+	$(LOADER) $(OPT) program_exec.o -o program_exec $(LIB)
+
+# jak uzyskac plik program_exec.o ?
+program_exec.o: program_exec.c
+	$(CCOMP) -c $(OPT) program_exec.c $(INC)
+
+program: program.c
+	$(CCOMP) -o program program.c
+
 # regula do kompilacji wszystkich programow
-all: fork clone main watki
+all: fork clone main watki program_exec
 
 clean:
 	rm -f *.o fork clone main watki

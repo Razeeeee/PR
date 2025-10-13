@@ -10,6 +10,8 @@
 
 #include"pomiar_czasu.h"
 
+// Dawid Szarek gh: Razeeeee
+
 int zmienna_globalna=0;
 
 #define ROZMIAR_STOSU 1024*64

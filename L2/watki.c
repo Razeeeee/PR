@@ -7,6 +7,8 @@
 #include <sched.h>
 #include <linux/sched.h>
 
+// Dawid Szarek gh: Razeeeee
+
 // Zmienna globalna współdzielona między wątkami
 int zmienna_globalna = 0;
 
@@ -23,17 +25,19 @@ struct argumenty_watku {
 int funkcja_watku_1(void* argument) {
     struct argumenty_watku *args = (struct argumenty_watku*)argument;
     int i;
+
+    int zmienna_lokalna = args->zmienna_lokalna;
     
     printf("Wątek 1: rozpoczynam pracę\n");
     
     // Pętla zwiększająca zmienne
     for(i = 0; i < LICZBA_ITERACJI; i++) {
         zmienna_globalna++;      // Zwiększenie zmiennej globalnej
-        (*(args->zmienna_lokalna))++;  // Zwiększenie zmiennej lokalnej
+        zmienna_lokalna++;       // Zwiększenie zmiennej lokalnej
     }
     
-    printf("Wątek 1: zakończyłem pracę\n");
-    printf("Wątek 1: zmienna_globalna = %d, zmienna_lokalna = %d\n", 
+    printf("Wątek 1 zakończyłem pracę\n");
+    printf("Wątek 1 zmienna_globalna = %d, zmienna_lokalna = %d\n", 
            zmienna_globalna, *(args->zmienna_lokalna));
     
     return 0;
@@ -44,7 +48,7 @@ int funkcja_watku_2(void* argument) {
     struct argumenty_watku *args = (struct argumenty_watku*)argument;
     int i;
     
-    printf("Wątek 2: rozpoczynam pracę\n");
+    printf("Wątek 2 rozpoczynam pracę\n");
     
     // Pętla zwiększająca zmienne  
     for(i = 0; i < LICZBA_ITERACJI; i++) {
@@ -52,8 +56,8 @@ int funkcja_watku_2(void* argument) {
         (*(args->zmienna_lokalna))++;  // Zwiększenie zmiennej lokalnej
     }
     
-    printf("Wątek 2: zakończyłem pracę\n");
-    printf("Wątek 2: zmienna_globalna = %d, zmienna_lokalna = %d\n", 
+    printf("Wątek 2 zakończyłem pracę\n");
+    printf("Wątek 2 zmienna_globalna = %d, zmienna_lokalna = %d\n", 
            zmienna_globalna, *(args->zmienna_lokalna));
     
     return 0;
@@ -72,9 +76,9 @@ int main() {
     struct argumenty_watku args2 = {&zmienna_lokalna_2, 2};
     
     printf("=== DWA WĄTKI ===\n");
-    printf("Liczba iteracji: %d\n", LICZBA_ITERACJI);
-    printf("Oczekiwana wartość zmiennej globalnej: %d\n", 2 * LICZBA_ITERACJI);
-    printf("Oczekiwana wartość każdej zmiennej lokalnej: %d\n", LICZBA_ITERACJI);
+    printf("Liczba iteracji %d\n", LICZBA_ITERACJI);
+    printf("Oczekiwana wartość zmiennej globalnej %d\n", 2 * LICZBA_ITERACJI);
+    printf("Oczekiwana wartość każdej zmiennej lokalnej %d\n", LICZBA_ITERACJI);
     printf("========================================\n\n");
     
     // Alokacja stosów dla wątków
@@ -97,7 +101,7 @@ int main() {
     printf("zmienna_lokalna_2 = %d\n\n", zmienna_lokalna_2);
     
     // Tworzenie pierwszego wątku
-    printf("Tworzę wątek 1...\n");
+    printf("Tworzę wątek 1\n");
     pid1 = clone(&funkcja_watku_1, (void*)stos1 + ROZMIAR_STOSU,
                  CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_VM, &args1);
     
@@ -109,7 +113,7 @@ int main() {
     }
     
     // Tworzenie drugiego wątku BEZPOŚREDNIO po pierwszym (bez czekania!)
-    printf("Tworzę wątek 2...\n");
+    printf("Tworzę wątek 2\n");
     pid2 = clone(&funkcja_watku_2, (void*)stos2 + ROZMIAR_STOSU,
                  CLONE_FS | CLONE_FILES | CLONE_SIGHAND | CLONE_VM, &args2);
     
