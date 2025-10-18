@@ -24,9 +24,7 @@ int main()
         }
     }
     else {
-        // Proces rodzicielski
-        wait(&status);
-        printf("Proces potomny zakonczyl sie z kodem: %d\n", WEXITSTATUS(status));
+        wait(NULL);
     }
     
     return 0;

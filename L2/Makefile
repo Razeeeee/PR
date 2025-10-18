@@ -59,8 +59,15 @@ program_exec.o: program_exec.c
 program: program.c
 	$(CCOMP) -o program program.c
 
+stos: stos.o 
+	$(LOADER) $(OPT) stos.o -o stos $(LIB)
+
+# jak uzyskac plik stos.o ?
+stos.o: stos.c ../pomiar_czasu/pomiar_czasu.h
+	$(CCOMP) -c $(OPT) stos.c $(INC)
+
 # regula do kompilacji wszystkich programow
-all: fork clone main watki program_exec
+all: fork clone main watki program_exec program stos
 
 clean:
 	rm -f *.o fork clone main watki
