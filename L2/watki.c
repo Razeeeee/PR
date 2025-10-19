@@ -25,15 +25,13 @@ struct argumenty_watku {
 int funkcja_watku_1(void* argument) {
     struct argumenty_watku *args = (struct argumenty_watku*)argument;
     int i;
-
-    int zmienna_lokalna = args->zmienna_lokalna;
     
     printf("Wątek 1: rozpoczynam pracę\n");
     
     // Pętla zwiększająca zmienne
     for(i = 0; i < LICZBA_ITERACJI; i++) {
         zmienna_globalna++;      // Zwiększenie zmiennej globalnej
-        zmienna_lokalna++;       // Zwiększenie zmiennej lokalnej
+        (*(args->zmienna_lokalna))++;       // Zwiększenie zmiennej lokalnej
     }
     
     printf("Wątek 1 zakończyłem pracę\n");
