@@ -1,0 +1,46 @@
+Test 1: Ograniczone zasoby - kufle i krany (4 klientów, 2 kufle, 2 krany)
+- Łączna liczba wypitych kufli (S2): 12
+- Oczekiwana liczba kufli: 12
+- Różnica (utracone aktualizacje): 0 
+- Obserwowane czekanie: Tak - "brak wolnych kufli, czekam 3 sek"
+
+Test 2: Bardzo ograniczone zasoby (5 klientów, 1 kufel, 1 kran)
+- Łączna liczba wypitych kufli (S2): 15
+- Oczekiwana liczba kufli: 15
+- Różnica (utracone aktualizacje): 0 
+- Obserwowane czekanie: Tak - losowe czekanie 1-3 sekund
+- Kolejkowanie: Klienci czekali po kolei na jedyny zasób
+
+Test 3: Kufle jako wąskie gardło (3 klientów, 2 kufle, 4 krany)
+- Łączna liczba wypitych kufli (S2): 9
+- Oczekiwana liczba kufli: 9
+- Różnica (utracone aktualizacje): 0 
+- Obserwowane czekanie: Tylko na kufle - krany zawsze dostępne
+
+do {
+    kufel = -1;
+    for(int j = 0; j < pub_wsk.l_wkf; j++) {
+        if(pthread_mutex_trylock(&pub_wsk.tab_kuf[j]) == 0) {
+            kufel = j;
+            break;
+        }
+    }
+    if(kufel == -1) {
+        losowy_czas_czekania = 1 + rand() % 3; // 1-3 sekundy
+        sleep(losowy_czas_czekania);
+    }
+} while(kufel == -1);
+
+do {
+    kran = -1;
+    for(int j = 0; j < pub_wsk.l_kr; j++) {
+        if(pthread_mutex_trylock(&tab_kran[j]) == 0) {
+            kran = j;
+            break;
+        }
+    }
+    if(kran == -1) {
+        losowy_czas_czekania = 1 + rand() % 2; // 1-2 sekundy
+        sleep(losowy_czas_czekania);
+    }
+} while(kran == -1);

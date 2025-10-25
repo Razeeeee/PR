@@ -1,0 +1,15 @@
+=== WYNIKI SYMULACJI (S4 z rozszerzonym śledzeniem) ===
+Łączna liczba wypitych kufli (S4): 15
+Różnica w wykorzystaniu kufli: 3 użycia
+Równowaga wykorzystania kufli: 40.00% (nierównomierne)
+Równowaga wykorzystania kranów: -60.00% (jeden kran nieużywany)
+
+Test z wysoką konkurencją (8 klientów, 2 kufle, 2 krany):
+=== STATYSTYKI CZASÓW OCZEKIWANIA ===
+Całkowity czas oczekiwania na kufle: 10807951 μs
+Liczba prób dostępu do kufli: 16437
+Średni czas oczekiwania na kufel: 657.54 μs
+
+=== ANALIZA EFEKTYWNOŚCI ===
+Równowaga wykorzystania kufli: 100.00% (idealna równowaga)
+Równowaga wykorzystania kranów: 100.00% (idealna równowaga)

@@ -1,0 +1,34 @@
+Test 1: Mała liczba klientów, dużo kufli (3 klientów, 15 kufli)
+- Łączna liczba wypitych kufli (S1): 9
+- Oczekiwana liczba kufli: 9
+- Różnica (utracone aktualizacje): 0 
+- Końcowa liczba dostępnych kufli: 15
+
+Test 2: Średnia liczba klientów, dużo kufli (5 klientów, 25 kufli)  
+- Łączna liczba wypitych kufli (S1): 15
+- Oczekiwana liczba kufli: 15
+- Różnica (utracone aktualizacje): 0 
+- Końcowa liczba dostępnych kufli: 25
+
+Test 3: Dużo klientów, mało kufli - UJEMNE KUFLE! (10 klientów, 5 kufli)
+- Łączna liczba wypitych kufli (S1): 30
+- Oczekiwana liczba kufli: 30  
+- Różnica (utracone aktualizacje): 0 
+- Końcowa liczba dostępnych kufli: 5
+- Licznik kufli spadał do -5 w trakcie symulacji!
+
+Porównanie z pub_sym_0 (bez mutex) - Test 3
+- pub_sym_0 (bez mutex): S0 = 12/30 (18 utraconych aktualizacji = 60%)
+- pub_sym_1 (z mutex): S1 = 30/30 (0 utraconych aktualizacji = 0%)
+
+Brak race condition - Zmienna S1 zawsze ma poprawną wartość
+Ujemne kufle - Zgodnie z wymaganiem, brak sprawdzania warunku na ujemne kufle
+Licznik `liczba_kufli_dostepnych` spadał do -5
+
+pthread_mutex_lock(&mutex_S1);
+S1++;  // Atomowa inkrementacja
+pthread_mutex_unlock(&mutex_S1);
+
+pthread_mutex_lock(&mutex_kufle);
+liczba_kufli_dostepnych--;  // Atomowe pobranie kufla
+pthread_mutex_unlock(&mutex_kufle);

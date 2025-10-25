@@ -1,0 +1,16 @@
+=== PODEJŚCIE 0 (pub_sym_0.c) - Brak zabezpieczeń ===
+Race condition - dostęp do S0.
+
+=== PODEJŚCIE 1 (pub_sym_1.c) - Zabezpieczenie mutex ===
+Mutex dla wspólnych zmiennych.
+Rozwiązuje race condition, nie sprawdza czy kufle są ujemne.
+
+=== PODEJŚCIE 2 (pub_sym_2.c) - Aktywne czekanie ===
+Pętla do while z pthread_mutex_trylock().
+Krótkie losowe opóźnienia przy czekaniu na zasoby.
+
+=== PODEJŚCIE 3 (pub_sym_3.c) - Trylock z liczeniem pracy ===
+Dodanie do 2 pomiaru pracy.
+
+=== PODEJŚCIE 4 (pub_sym_4.c) - Rozszerzone śledzenie i statystyki ===
+Dodatkowo śledzenie liczby kufli i kranów.
