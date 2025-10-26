@@ -56,7 +56,6 @@ int main()
 	int i;
 
 	// Wątek przyłączalny (joinable)
-	
 	printf("watek glowny: tworzenie watku potomnego nr 1\n");
 
 	// Tworzenie wątku z domyślnymi właściwościami
@@ -106,6 +105,17 @@ int main()
 	// Nie można sprawdzić czy wątek odłączony został anulowany,
 	// ponieważ nie można użyć pthread_join() na wątku odłączonym
 	// - pthread_join() zwraca błąd dla wątków odłączonych
+	// Sprawdzenie wartości zmiennej wspólnej
+	for(i=0; i<10; i++) {
+		sleep(1);
+		if (zmienna_wspolna != 0) break;
+	}
+
+	if (zmienna_wspolna == 0) {
+		printf("\twatek glowny: watek odlaczony zostal PRAWDOPODOBNIE zabity\n");
+	} else {
+		printf("\twatek glowny: watek odlaczony PRAWDOPODOBNIE NIE zostal zabity\n");
+	}
 	
 	// Wątek odłączony utworzony z atrybutami
 	
