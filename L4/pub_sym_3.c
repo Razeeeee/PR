@@ -150,14 +150,12 @@ void * watek_klient (void * arg_wsk){
       if(kufel == -1) {
         // Nie znaleziono wolnego kufla - wykonujemy pracę podczas oczekiwania
         licznik_prob++;
-        
-        // Symulacja pracy podczas oczekiwania (np. rozmowa, obserwowanie)
-        int praca_w_tej_iteracji = 10 + rand() % 20; // 10-29 jednostek pracy
-        moja_praca_oczekiwania += praca_w_tej_iteracji;
+
+        moja_praca_oczekiwania ++;
         
         if(licznik_prob % 5 == 0) { // Co 5 prób pokazuj postęp
-          printf("\nKlient %d, brak wolnych kufli (próba %d), wykonuję pracę (+%d jednostek)\n", 
-                 moj_id, licznik_prob, praca_w_tej_iteracji);
+          printf("\nKlient %d, brak wolnych kufli (próba %d), wykonuję pracę (+1 jednostek)\n", 
+                 moj_id, licznik_prob);
         }
         
         // Krótka pauza przed kolejną próbą
@@ -190,12 +188,11 @@ void * watek_klient (void * arg_wsk){
         licznik_prob++;
         
         // Symulacja pracy podczas oczekiwania na kran
-        int praca_w_tej_iteracji = 5 + rand() % 15; // 5-19 jednostek pracy
-        moja_praca_oczekiwania += praca_w_tej_iteracji;
+        moja_praca_oczekiwania ++;
         
         if(licznik_prob % 3 == 0) { // Co 3 próby pokazuj postęp
-          printf("\nKlient %d, brak wolnych kranów (próba %d), wykonuję pracę (+%d jednostek)\n", 
-                 moj_id, licznik_prob, praca_w_tej_iteracji);
+          printf("\nKlient %d, brak wolnych kranów (próba %d), wykonuję pracę (+1 jednostek)\n", 
+                 moj_id, licznik_prob);
         }
         
         // Krótka pauza przed kolejną próbą

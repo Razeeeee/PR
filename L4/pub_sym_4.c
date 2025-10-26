@@ -172,11 +172,11 @@ int main( void ){
 
   // Analiza efektywności
   printf("\n=== ANALIZA EFEKTYWNOŚCI ===\n");
-  double wspolczynnik_wykorzystania_kufli = suma_kufle / (l_kl * ILE_MUSZE_WYPIC);
-  double wspolczynnik_wykorzystania_kranow = suma_krany / (l_kl * ILE_MUSZE_WYPIC);
+  // double wspolczynnik_wykorzystania_kufli = suma_kufle / (l_kl * ILE_MUSZE_WYPIC);
+  // double wspolczynnik_wykorzystania_kranow = suma_krany / (l_kl * ILE_MUSZE_WYPIC);
   
-  printf("Współczynnik wykorzystania kufli: %.2f\n", wspolczynnik_wykorzystania_kufli);
-  printf("Współczynnik wykorzystania kranów: %.2f\n", wspolczynnik_wykorzystania_kranow);
+  // printf("Współczynnik wykorzystania kufli: %.2f\n", wspolczynnik_wykorzystania_kufli);
+  // printf("Współczynnik wykorzystania kranów: %.2f\n", wspolczynnik_wykorzystania_kranow);
   
   if(l_kf > 0 && l_kr > 0) {
     double rownowagosc_kufli = 1.0 - ((double)(max_kufle - min_kufle) / (suma_kufle / l_kf));
