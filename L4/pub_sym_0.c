@@ -70,15 +70,11 @@ void * watek_klient (void * arg_wsk){
     
     j=0;
     printf("\nKlient %d, nalewam z kranu %d\n", moj_id, j); 
-    usleep(30);
     
     printf("\nKlient %d, pije\n", moj_id); 
-    nanosleep((struct timespec[]){{0, 50000000L}}, NULL);
     
-    // NIEZABEZPIECZONY dostęp do zmiennej wspólnej S0
-    // To może prowadzić do race condition i utraconych aktualizacji
     int temp_S0 = S0;
-    usleep(1); // Symulacja opóźnienia dla zwiększenia prawdopodobieństwa race condition
+    usleep(1);
     S0 = temp_S0 + 1;
     
     printf("\nKlient %d, odkladam kufel (S0=%d)\n", moj_id, S0); 

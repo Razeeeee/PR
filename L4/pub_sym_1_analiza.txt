@@ -21,10 +21,6 @@ Porównanie z pub_sym_0 (bez mutex) - Test 3
 - pub_sym_0 (bez mutex): S0 = 12/30 (18 utraconych aktualizacji = 60%)
 - pub_sym_1 (z mutex): S1 = 30/30 (0 utraconych aktualizacji = 0%)
 
-Brak race condition - Zmienna S1 zawsze ma poprawną wartość
-Ujemne kufle - Zgodnie z wymaganiem, brak sprawdzania warunku na ujemne kufle
-Licznik `liczba_kufli_dostepnych` spadał do -5
-
 pthread_mutex_lock(&mutex_S1);
 S1++;  // Atomowa inkrementacja
 pthread_mutex_unlock(&mutex_S1);

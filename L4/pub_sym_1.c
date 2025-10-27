@@ -80,23 +80,15 @@ void * watek_klient (void * arg_wsk){
 
     printf("\nKlient %d, wybieram kufel\n", moj_id); 
     
-    // ZABEZPIECZONY dostęp do kufli (lock/unlock)
     pthread_mutex_lock(&mutex_kufle);
-    
-    // UWAGA: Nie sprawdzamy warunku na ujemne kufle zgodnie z wymaganiem!
     liczba_kufli_dostepnych--;
     printf("\nKlient %d, wziąłem kufel (zostało: %d)\n", moj_id, liczba_kufli_dostepnych);
-    
     pthread_mutex_unlock(&mutex_kufle);
     
     j=0;
     printf("\nKlient %d, nalewam z kranu %d\n", moj_id, j); 
-    usleep(30);
-    
     printf("\nKlient %d, pije\n", moj_id); 
-    nanosleep((struct timespec[]){{0, 50000000L}}, NULL);
     
-    // ZABEZPIECZONY dostęp do zmiennej wspólnej S1 (lock/unlock)
     pthread_mutex_lock(&mutex_S1);
     S1++;
     printf("\nKlient %d, wypił kufel (łącznie wypito: S1=%d)\n", moj_id, S1);

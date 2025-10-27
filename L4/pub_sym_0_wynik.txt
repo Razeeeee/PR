@@ -8,4 +8,3 @@ Wątek A odczytuje S0=5
 Wątek B odczytuje S0=5 (ta sama wartość!)
 Wątek A zapisuje S0=6
 Wątek B zapisuje S0=6 (zamiast 7!)
-Rezultat: Jedna aktualizacja została utracona
