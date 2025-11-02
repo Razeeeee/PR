@@ -10,7 +10,7 @@
 double funkcja ( double x );
 double funkcja ( double x ){ return( sin(x) ); }
 
-double calka_zrownoleglenie_petli(double a, double b, double dx, int l_w);
+double calka_zrownoleglenie_petli_blokowa(double a, double b, double dx, int l_w);
 
 static int l_w_global=0;
 
@@ -24,13 +24,12 @@ pthread_mutex_t mutex_calka = PTHREAD_MUTEX_INITIALIZER;
 
 void* calka_fragment_petli_w(void* arg_wsk);
 
-double calka_zrownoleglenie_petli(double a, double b, double dx, int l_w){
+double calka_zrownoleglenie_petli_blokowa(double a, double b, double dx, int l_w){
 
   int N = ceil((b-a)/dx);
   double dx_adjust = (b-a)/N;
 
   //printf("Obliczona liczba trapezów: N = %d, dx_adjust = %lf\n", N, dx_adjust);
-  //printf("a %lf, b %lf, n %d, dx %.12lf (dx_adjust %.12lf)\n", a, b, N, dx, dx_adjust);
 
   // ustawienie zmiennych globalnych
   a_global = a;
@@ -63,37 +62,42 @@ void* calka_fragment_petli_w(void* arg_wsk){
 
   int my_id = *((int*)arg_wsk);
 
-  double a, b, dx; // skąd pobrać dane a, b, dx, N, l_w ? 
-  int N, l_w;      // wariant 1 - globalne
+  double a, b, dx;
+  int N, l_w;
 
-  a = a_global; // itd. itp. - wartości globalne nadaje calka_zrownoleglenie_petli
+  a = a_global;
   b = b_global;
   dx = dx_global;
   N = N_global;
   l_w = l_w_global;
 
-  // dekompozycja cykliczna
-  int my_start = my_id;        // wątek i zaczyna od iteracji i
-  int my_end = N;              // wszystkie wątki kończą przy N
-  int my_stride = l_w;         // wątek wykonuje co l_w-tą iterację
-
-  // iteraca
-  // 0 1 2 3 4 5 6 7 8 9
-  // wątek 0 robi: 0 4 8
-  // wątek 1 robi: 1 5 9
-  // wątek 2 robi: 2 6
-  // wątek 3 robi: 3 7
-
   // dekompozycja blokowa
-  //int my_start = 0;
-  //int my_end = 0;
-  //int my_stride = 0;
+  // Każdy wątek dostaje ciągły blok iteracji
+  int block_size = N / l_w;           // podstawowy rozmiar bloku
+  int remainder = N % l_w;            // reszta do rozdzielenia
+  
+  int my_start, my_end;
+  
+  // Pierwszy 'remainder' wątków dostaje o 1 iterację więcej
+  if(my_id < remainder){
+    my_start = my_id * (block_size + 1);
+    my_end = my_start + (block_size + 1);
+  } else {
+    my_start = my_id * block_size + remainder;
+    my_end = my_start + block_size;
+  }
+  
+  int my_stride = 1;  // w dekompozycji blokowej wykonujemy kolejne iteracje
 
-  // something else ? (dekompozycja blokowo-cykliczna)
+  // Przykład z N=10, l_w=4:
+  // block_size = 10/4 = 2, remainder = 10%4 = 2
+  // wątek 0: iteracje 0,1,2 (start=0, end=3) - dostaje +1
+  // wątek 1: iteracje 3,4,5 (start=3, end=6) - dostaje +1
+  // wątek 2: iteracje 6,7   (start=6, end=8)
+  // wątek 3: iteracje 8,9   (start=8, end=10)
 
   //printf("\nWątek %d: my_start %d, my_end %d, my_stride %d\n", 
   //	 my_id, my_start, my_end, my_stride);
-
 
   int i;
   double calka = 0.0;
@@ -101,8 +105,6 @@ void* calka_fragment_petli_w(void* arg_wsk){
 
     double x1 = a + i*dx;
     calka += 0.5*dx*(funkcja(x1)+funkcja(x1+dx));
-    //printf("i %d, x1 %lf, funkcja(x1) %lf, całka = %.15lf\n", 
-    //	   i, x1, funkcja(x1), calka);
 
   }
 
@@ -132,6 +134,7 @@ int main( int argc, char *argv[] ){
   int num_lw = 4;
 
   printf("\n========================================\n");
+  printf("DEKOMPOZYCJA BLOKOWA PĘTLI\n");
   printf("Format: dx, liczba_wątków, czas[s], całka, błąd\n");
   printf("========================================\n");
 
@@ -145,7 +148,7 @@ int main( int argc, char *argv[] ){
       printf("\n--- Test: dx=%.6f, wątki=%d ---\n", dx, l_w);
       
       t1 = czas_zegara();
-      calka = calka_zrownoleglenie_petli(a, b, dx, l_w);
+      calka = calka_zrownoleglenie_petli_blokowa(a, b, dx, l_w);
       t1 = czas_zegara() - t1;
       
       double blad = fabs(calka - wartosc_dokladna);

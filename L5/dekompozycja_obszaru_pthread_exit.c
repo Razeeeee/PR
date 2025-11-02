@@ -1,4 +1,5 @@
 #include<stdio.h>
+#include<stdlib.h>
 #include<pthread.h>
 #include<math.h>
 #include"pomiar_czasu.h"
@@ -16,15 +17,12 @@ typedef struct {
   double a_local;       // lewy kraniec podobszaru
   double b_local;       // prawy kraniec podobszaru
   double dx;            // wysokość trapezu
-  double wynik;         // wynik obliczeń wątku
 } dane_obszaru_t;
 
-double calka_dekompozycja_obszaru(double a, double b, double dx, int l_w);
-void* calka_podobszar_w(void* arg_wsk);
+double calka_dekompozycja_obszaru_pthread_exit(double a, double b, double dx, int l_w);
+void* calka_podobszar_w_pthread_exit(void* arg_wsk);
 
-double calka_dekompozycja_obszaru(double a, double b, double dx, int l_w){
-
-  //printf("a %lf, b %lf, dx %lf\n", a, b, dx);
+double calka_dekompozycja_obszaru_pthread_exit(double a, double b, double dx, int l_w){
 
   // tworzenie struktur danych do obsługi wielowątkowości
   pthread_t watki[l_w];
@@ -40,29 +38,31 @@ double calka_dekompozycja_obszaru(double a, double b, double dx, int l_w){
     dane_watkow[i].a_local = a + i * szerokosc_podobszaru;
     dane_watkow[i].b_local = a + (i + 1) * szerokosc_podobszaru;
     dane_watkow[i].dx = dx;
-    dane_watkow[i].wynik = 0.0;
   }
 
   // tworzenie wątków
   for(i = 0; i < l_w; i++){
-    pthread_create(&watki[i], NULL, calka_podobszar_w, (void*)&dane_watkow[i]);
+    pthread_create(&watki[i], NULL, calka_podobszar_w_pthread_exit, (void*)&dane_watkow[i]);
   }
 
-  // oczekiwanie na zakończenie pracy wątków
-  for(i = 0; i < l_w; i++){
-    pthread_join(watki[i], NULL);
-  }
-  
-  // Sumowanie wyników z poszczególnych wątków
+  // oczekiwanie na zakończenie pracy wątków i odbieranie wyników
   double calka_suma_local = 0.0;
   for(i = 0; i < l_w; i++){
-    calka_suma_local += dane_watkow[i].wynik;
+    double* wynik_watku = NULL;
+    pthread_join(watki[i], (void**)&wynik_watku);
+    
+    if(wynik_watku != NULL){
+      calka_suma_local += *wynik_watku;
+      // Zwolnienie pamięci zaalokowanej przez wątek
+      free(wynik_watku);
+      wynik_watku = NULL;
+    }
   }
 
   return(calka_suma_local);
 }
 
-void* calka_podobszar_w(void* arg_wsk){
+void* calka_podobszar_w_pthread_exit(void* arg_wsk){
 
   // rozpakowanie danych przesłanych do wątku
   dane_obszaru_t* dane = (dane_obszaru_t*)arg_wsk;
@@ -91,10 +91,17 @@ void* calka_podobszar_w(void* arg_wsk){
     //	   my_id, i, x1, funkcja(x1), calka);
   }
   
-  // Zapisanie wyniku do struktury
-  dane->wynik = calka;
+  // Dynamiczna alokacja pamięci dla wyniku
+  double* wynik = (double*)malloc(sizeof(double));
+  if(wynik == NULL){
+    fprintf(stderr, "Błąd alokacji pamięci w wątku %d\n", my_id);
+    pthread_exit(NULL);
+  }
   
-  pthread_exit(NULL);
+  *wynik = calka;
+  
+  // Zwrócenie wyniku przez pthread_exit
+  pthread_exit((void*)wynik);
 }
 
 int main( int argc, char *argv[] ){
@@ -115,7 +122,8 @@ int main( int argc, char *argv[] ){
   int num_lw = 4;
 
   printf("\n========================================\n");
-  printf("Dekompozycja w dziedzinie problemu (podział obszaru A-B)\n");
+  printf("Dekompozycja obszaru z pthread_exit\n");
+  printf("(zwracanie wyniku przez dynamiczną alokację)\n");
   printf("Format: dx, liczba_wątków, czas[s], całka, błąd\n");
   printf("========================================\n");
 
@@ -129,7 +137,7 @@ int main( int argc, char *argv[] ){
       printf("\n--- Test: dx=%.6f, wątki=%d ---\n", dx, l_w);
       
       t1 = czas_zegara();
-      calka = calka_dekompozycja_obszaru(a, b, dx, l_w);
+      calka = calka_dekompozycja_obszaru_pthread_exit(a, b, dx, l_w);
       t1 = czas_zegara() - t1;
       
       double blad = fabs(calka - wartosc_dokladna);
