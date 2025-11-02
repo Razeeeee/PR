@@ -8,15 +8,21 @@
 
 struct struktura_t { 
   int l_wkf;
-  pthread_mutex_t *tab_kuf; 
   int l_kr;
-  pthread_mutex_t *tab_kran;  
 };
 struct struktura_t pub_wsk;
 
 // Zmienna wspólna S2 - liczba wypitych kufli (z aktywnym czekaniem)
 int S2 = 0;
 pthread_mutex_t mutex_S2 = PTHREAD_MUTEX_INITIALIZER;
+
+// Licznik dostępnych kufli (aktywne czekanie)
+int dostepne_kufle = 0;
+pthread_mutex_t mutex_kufle = PTHREAD_MUTEX_INITIALIZER;
+
+// Licznik dostępnych kranów (aktywne czekanie)
+int dostepne_krany = 0;
+pthread_mutex_t mutex_krany = PTHREAD_MUTEX_INITIALIZER;
 
 void * watek_klient (void * arg);
 
@@ -33,24 +39,23 @@ int main( void ){
 
   printf("\nLiczba kufli: "); scanf("%d", &l_kf);
   pub_wsk.l_wkf = l_kf;
+  dostepne_kufle = l_kf; // Inicjalizacja licznika dostępnych kufli
 
   printf("\nLiczba kranow: "); scanf("%d", &l_kr);
   pub_wsk.l_kr = l_kr;
+  dostepne_krany = l_kr; // Inicjalizacja licznika dostępnych kranów
 
   tab_klient = (pthread_t *) malloc(l_kl*sizeof(pthread_t));
   tab_klient_id = (int *) malloc(l_kl*sizeof(int));
   for(i=0;i<l_kl;i++) tab_klient_id[i]=i;
 
-  pub_wsk.tab_kuf = (pthread_mutex_t *) malloc(l_kf*sizeof(pthread_mutex_t));
-  for(i=0;i<l_kf;i++) pthread_mutex_init(&pub_wsk.tab_kuf[i], NULL);
-
-  pub_wsk.tab_kran = (pthread_mutex_t *) malloc(l_kr*sizeof(pthread_mutex_t));
-  for(i=0;i<l_kr;i++) pthread_mutex_init(&pub_wsk.tab_kran[i], NULL);
+  // Usunięto inicjalizację poszczególnych mutexów kranów - używamy licznika
 
   printf("\nOtwieramy pub (z aktywnym czekaniem)!\n");
   printf("\nLiczba wolnych kufli %d\n", l_kf); 
   printf("Liczba kranów %d\n", l_kr);
-  printf("Śledzenie liczby kufli: WŁĄCZONE (aktywne czekanie bez trylock - S2)\n");
+  printf("Śledzenie liczby kufli: WŁĄCZONE (aktywne czekanie - S2)\n");
+  printf("Śledzenie liczby kranów: WŁĄCZONE (aktywne czekanie)\n");
 
   for(i=0;i<l_kl;i++){
     pthread_create(&tab_klient[i], NULL, watek_klient, &tab_klient_id[i]); 
@@ -59,19 +64,16 @@ int main( void ){
     pthread_join( tab_klient[i], NULL);
   }
   
-  printf("\n=== WYNIKI SYMULACJI (aktywne czekanie bez trylock) ===\n");
+  printf("\n=== WYNIKI SYMULACJI (aktywne czekanie) ===\n");
   printf("Łączna liczba wypitych kufli (S2): %d\n", S2);
   printf("Oczekiwana liczba kufli: %d\n", l_kl * ILE_MUSZE_WYPIC);
   printf("Różnica (powinno być 0 z aktywnym czekaniem): %d\n", (l_kl * ILE_MUSZE_WYPIC) - S2);
   printf("\nZamykamy pub!\n");
 
   // Zniszczenie mutexów
-  for(i=0;i<l_kf;i++) pthread_mutex_destroy(&pub_wsk.tab_kuf[i]);
-  for(i=0;i<l_kr;i++) pthread_mutex_destroy(&pub_wsk.tab_kran[i]);
   pthread_mutex_destroy(&mutex_S2);
-  
-  free(pub_wsk.tab_kuf);
-  free(pub_wsk.tab_kran);
+  pthread_mutex_destroy(&mutex_kufle);
+  pthread_mutex_destroy(&mutex_krany);
   free(tab_klient);
   free(tab_klient_id);
 
@@ -91,62 +93,46 @@ void * watek_klient (void * arg_wsk){
 
     printf("\nKlient %d, szukam wolnego kufla\n", moj_id); 
 
-    // AKTYWNE CZEKANIE NA KUFEL - sprawdzanie w pętli bez trylock
-    kufel = -1;
-    while(kufel == -1) {
-      // Przeszukujemy wszystkie kufle w poszukiwaniu wolnego
-      for(int j = 0; j < pub_wsk.l_wkf; j++) {
-        // Sprawdzamy czy kufel jest dostępny (aktywne czekanie)
-        // Próbujemy zablokować normalnym lockiem
-        if(pthread_mutex_lock(&pub_wsk.tab_kuf[j]) == 0) {
-          kufel = j;
-          printf("\nKlient %d, znalazłem wolny kufel %d\n", moj_id, kufel);
-          break; // Znaleźliśmy wolny kufel, zostaje zablokowany
-        }
+    // Aktywne czekanie na dostępny kufel
+    while(1) {
+      pthread_mutex_lock(&mutex_kufle);
+      if(dostepne_kufle > 0) {
+        dostepne_kufle--;
+        kufel = dostepne_kufle;
+        printf("\nKlient %d, zarezerwowałem kufel (pozostało: %d)\n", moj_id, dostepne_kufle);
+        pthread_mutex_unlock(&mutex_kufle);
+        break;
       }
-      
-      if(kufel == -1) {
-        // Nie znaleziono wolnego kufla - aktywne czekanie z pauzą
-        losowy_czas_czekania = 1 + rand() % 3; // 1-3 sekundy
-        printf("\nKlient %d, brak wolnych kufli, czekam %d sek\n", moj_id, losowy_czas_czekania);
-        sleep(losowy_czas_czekania);
-      }
+      pthread_mutex_unlock(&mutex_kufle);
+      usleep(1000);
     }
 
     printf("\nKlient %d, wybrałem kufel %d\n", moj_id, kufel);
 
     printf("\nKlient %d, szukam wolnego kranu\n", moj_id); 
 
-    // AKTYWNE CZEKANIE NA KRAN - sprawdzanie w pętli bez trylock
-    kran = -1;
-    while(kran == -1) {
-      // Przeszukujemy wszystkie krany w poszukiwaniu wolnego
-      for(int j = 0; j < pub_wsk.l_kr; j++) {
-        // Sprawdzamy czy kran jest dostępny (aktywne czekanie)
-        // Próbujemy zablokować normalnym lockiem
-        if(pthread_mutex_lock(&pub_wsk.tab_kran[j]) == 0) {
-          kran = j;
-          printf("\nKlient %d, znalazłem wolny kran %d\n", moj_id, kran);
-          break; // Znaleźliśmy wolny kran, zostaje zablokowany
-        }
+    // Aktywne czekanie na dostępny kran
+    while(1) {
+      pthread_mutex_lock(&mutex_krany);
+      if(dostepne_krany > 0) {
+        dostepne_krany--;
+        kran = dostepne_krany;
+        printf("\nKlient %d, zarezerwowałem kran (pozostało: %d)\n", moj_id, dostepne_krany);
+        pthread_mutex_unlock(&mutex_krany);
+        break;
       }
-      
-      if(kran == -1) {
-        // Nie znaleziono wolnego kranu - aktywne czekanie z pauzą
-        losowy_czas_czekania = 1 + rand() % 2; // 1-2 sekundy
-        printf("\nKlient %d, brak wolnych kranów, czekam %d sek\n", moj_id, losowy_czas_czekania);
-        sleep(losowy_czas_czekania);
-      }
+      pthread_mutex_unlock(&mutex_krany);
+      usleep(1000);
     }
     
-    printf("\nKlient %d, nalewam z kranu %d\n", moj_id, kran); 
-    usleep(100000); // 100ms na nalewanie
+    printf("\nKlient %d, nalewam z kranu %d\n", moj_id, kran);
 
-    // Zwalniamy kran po nalewaniu
-    pthread_mutex_unlock(&pub_wsk.tab_kran[kran]);
-    printf("\nKlient %d, zwolniłem kran %d\n", moj_id, kran);
+    // Oddanie kranu - zwiększenie licznika dostępnych kranów
+    pthread_mutex_lock(&mutex_krany);
+    dostepne_krany++;
+    printf("\nKlient %d, zwolniłem kran (dostępnych: %d)\n", moj_id, dostepne_krany);
+    pthread_mutex_unlock(&mutex_krany);
 
-    // Picie piwa
     if(kran==0)  printf("\nKlient %d, pije piwo Guinness\n", moj_id); 
     else if(kran==1)  printf("\nKlient %d, pije piwo Żywiec\n", moj_id); 
     else if(kran==2)  printf("\nKlient %d, pije piwo Heineken\n", moj_id); 
@@ -154,17 +140,16 @@ void * watek_klient (void * arg_wsk){
     else if(kran==4)  printf("\nKlient %d, pije piwo Karlsberg\n", moj_id); 
     else printf("\nKlient %d, pije piwo z kranu %d\n", moj_id, kran);
 
-    usleep(200000); // 200ms na picie
-
-    // ZABEZPIECZONY dostęp do zmiennej wspólnej S2
     pthread_mutex_lock(&mutex_S2);
     S2++;
     printf("\nKlient %d, wypił kufel (łącznie wypito: S2=%d)\n", moj_id, S2);
     pthread_mutex_unlock(&mutex_S2);
 
-    // Zwracamy kufel
-    pthread_mutex_unlock(&pub_wsk.tab_kuf[kufel]);
-    printf("\nKlient %d, oddałem kufel %d\n", moj_id, kufel); 
+    // Oddanie kufla - zwiększenie licznika dostępnych kufli
+    pthread_mutex_lock(&mutex_kufle);
+    dostepne_kufle++;
+    printf("\nKlient %d, oddałem kufel (dostępnych: %d)\n", moj_id, dostepne_kufle);
+    pthread_mutex_unlock(&mutex_kufle); 
 
   }
 
