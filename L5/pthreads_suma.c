@@ -120,6 +120,8 @@ void *suma_w( void *arg_wsk){
   // NOWE:
   int start = j * moj_id;
   int end = (moj_id == LICZBA_W - 1) ? ROZMIAR : j * (moj_id + 1);
+  // Co robi nowe:
+  // dla ostatniego wątku (moj_id == LICZBA_W - 1) ustawia end na ROZMIAR,
 
   for(i = start; i < end; i++) {
       moja_suma += tab[i];
@@ -143,7 +145,10 @@ void *suma_w_no_mutex( void *arg_wsk){
   j=ceil( (float)ROZMIAR/LICZBA_W ); // could be double as well 
   for( i = j*moj_id; i < j*(moj_id+1); i++){ 
     // not optimal - possible false sharing of data in single cache line
-    //global_array_of_local_sums[moj_id] += tab[i];
+    // global_array_of_local_sums[moj_id] += tab[i];
+    // false sharing: 
+    // jeden wątek modyfikuje dane w cache line, które są współdzielone z innym wątkiem
+    // wtedy inne wątki muszą odświeżyć swoje cache line - spowalnia to działanie
     // better - probably would be employed by the compiler anyway
     tmp+=tab[i];
   }

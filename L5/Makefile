@@ -6,9 +6,9 @@ LOADER = gcc
 
 # opcje optymalizacji:
 # wersja do debugowania
-#OPT = -g -DDEBUG -no-pie
+OPT = -g -DDEBUG -no-pie
 # wersja zoptymalizowana do mierzenia czasu
- OPT = -O3 -no-pie
+# OPT = -O3 -no-pie
 
 # pliki naglowkowe
 INC = -I.
