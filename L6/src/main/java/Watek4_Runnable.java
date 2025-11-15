@@ -1,23 +1,17 @@
-// Wariant 4: Runnable - podział kolumnowy blokowy po tablicy
-//
-// Strategia: Kolumny są dzielone na ciągłe bloki. Każdy wątek przetwarza
+// Kolumny są dzielone na ciągłe bloki. Każdy wątek przetwarza
 // przydzielony zakres kolumn dla wszystkich wierszy.
-//
-// Zalety: Dobra lokalność danych w pamięci, mniej synchronizacji
-// Wady: Może wystąpić nierównomierne obciążenie przy nieregularnym rozkładzie danych
 public class Watek4_Runnable implements Runnable {
     private char[][] imageTable;              // Tablica 2D ze znakami obrazu
     private char[] symbolsArray;              // Tablica symboli ASCII (94 znaki)
     private int[] histogram;                  // Wspólny histogram (tablica wyników)
     private int startColumn;                  // Indeks pierwszej kolumny do przetworzenia
-    private int endColumn;                    // Indeks ostatniej kolumny (exclusive)
+    private int endColumn;                    // Indeks ostatniej kolumny
     private int numberOfRows;                 // Liczba wierszy tablicy
     private int numberOfColumns;              // Liczba kolumn tablicy
     private int[] localHistogram;             // Lokalny histogram dla tego wątku
 
-    // Konstruktor wątku
     // startColumn - indeks pierwszej kolumny do przetworzenia
-    // endColumn - indeks ostatniej kolumny (exclusive)
+    // endColumn - indeks ostatniej kolumny
     // image - obiekt obrazu zawierający dane do przetworzenia
     public Watek4_Runnable(int startColumn, int endColumn, Obraz image) {
         this.startColumn = startColumn;
@@ -27,7 +21,7 @@ public class Watek4_Runnable implements Runnable {
         this.histogram = image.getHistogram();
         this.numberOfRows = image.getSize_n();
         this.numberOfColumns = image.getSize_m();
-        this.localHistogram = new int[image.getNumChars()];  // Lokalny bufor zmniejsza rywalizację o blokadę
+        this.localHistogram = new int[image.getNumChars()];
     }
 
     @Override

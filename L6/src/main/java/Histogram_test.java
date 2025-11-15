@@ -1,8 +1,5 @@
 import java.util.Scanner;
 
-// Program główny do testowania różnych wariantów wielowątkowego obliczania histogramu.
-//
-// Umożliwia wybór spośród 5 różnych strategii zrównoleglenia:
 // 1. Thread - jeden wątek na znak
 // 2. Runnable - podział blokowy po znakach
 // 3. Runnable - podział cykliczny wierszowy
@@ -24,7 +21,6 @@ public class Histogram_test {
 	int numberOfColumns = scanner.nextInt();
 
 	// Wyświetl menu wyboru wariantu
-	System.out.println("Select variant (1-5):");
 	System.out.println("1 - Thread: jeden wątek zlicza jeden znak");
 	System.out.println("2 - Runnable: podział 1D blokowy po znakach");
 	System.out.println("3 - Runnable: podział cykliczny wierszowy");

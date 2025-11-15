@@ -1,11 +1,6 @@
-// Wariant 3: Runnable - podział cykliczny wierszowy po tablicy
-//
-// Strategia: Wiersze są przydzielane wątkom cyklicznie (round-robin).
+// Wiersze są przydzielane wątkom cyklicznie:
 // Wątek 0 przetwarza wiersze 0, numberOfThreads, 2*numberOfThreads, ...
 // Wątek 1 przetwarza wiersze 1, numberOfThreads+1, 2*numberOfThreads+1, ...
-//
-// Zalety: Doskonała równowaga obciążenia, unikanie lokalności danych
-// Wady: Gorsze wykorzystanie cache procesora
 public class Watek3_Runnable implements Runnable {
     private char[][] imageTable;              // Tablica 2D ze znakami obrazu
     private char[] symbolsArray;              // Tablica symboli ASCII (94 znaki)
@@ -16,7 +11,6 @@ public class Watek3_Runnable implements Runnable {
     private int numberOfColumns;              // Liczba kolumn tablicy
     private int[] localHistogram;             // Lokalny histogram dla tego wątku
 
-    // Konstruktor wątku
     // threadId - identyfikator wątku (określa które wiersze przetwarza)
     // totalThreads - całkowita liczba wątków
     // image - obiekt obrazu zawierający dane do przetworzenia
@@ -28,7 +22,7 @@ public class Watek3_Runnable implements Runnable {
         this.histogram = image.getHistogram();
         this.numberOfRows = image.getSize_n();
         this.numberOfColumns = image.getSize_m();
-        this.localHistogram = new int[image.getNumChars()];  // Lokalny bufor zmniejsza rywalizację o blokadę
+        this.localHistogram = new int[image.getNumChars()];
     }
 
     @Override

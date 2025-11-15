@@ -1,10 +1,5 @@
-// Wariant 1: Thread - jeden wątek zlicza jeden znak
-//
-// Strategia: Każdy wątek odpowiada za zliczanie wystąpień jednego konkretnego
+// Każdy wątek odpowiada za zliczanie wystąpień jednego konkretnego
 // znaku ASCII w całej tablicy znaków.
-//
-// Zalety: Prosta implementacja, dobra równowaga obciążenia
-// Wady: Maksymalnie 94 wątki (liczba znaków ASCII)
 public class Watek1_Thread extends Thread {
     private char[][] imageTable;              // Tablica 2D ze znakami obrazu
     private char[] symbolsArray;              // Tablica symboli ASCII (94 znaki)
@@ -13,7 +8,6 @@ public class Watek1_Thread extends Thread {
     private int numberOfRows;                 // Liczba wierszy tablicy
     private int numberOfColumns;              // Liczba kolumn tablicy
 
-    // Konstruktor wątku
     // characterIndex - indeks znaku w tablicy symbolsArray, który będzie zliczany
     // image - obiekt obrazu zawierający dane do przetworzenia
     public Watek1_Thread(int characterIndex, Obraz image) {

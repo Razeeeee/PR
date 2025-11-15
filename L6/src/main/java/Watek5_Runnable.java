@@ -1,27 +1,22 @@
-// Wariant 5: Runnable - podział 2D blokowy
-//
-// Strategia: Tablica jest dzielona na prostokątne bloki 2D. Każdy wątek
-// przetwarza przydzielony blok (zakres wierszy i kolumn).
-//
-// Zalety: Bardzo dobra lokalność danych, optymalne wykorzystanie cache CPU
-// Wady: Wymaga starannego doboru liczby wątków (idealnie kwadraty: 4, 9, 16, ...)
+// Tablica jest dzielona na prostokątne bloki 2D. Każdy wątek
+// przetwarza przydzielony blok (zakres wierszy i kolumn)
 public class Watek5_Runnable implements Runnable {
     private char[][] imageTable;              // Tablica 2D ze znakami obrazu
     private char[] symbolsArray;              // Tablica symboli ASCII (94 znaki)
     private int[] histogram;                  // Wspólny histogram (tablica wyników)
     private int startRow;                     // Indeks pierwszego wiersza do przetworzenia
-    private int endRow;                       // Indeks ostatniego wiersza (exclusive)
+    private int endRow;                       // Indeks ostatniego wiersza
     private int startColumn;                  // Indeks pierwszej kolumny do przetworzenia
-    private int endColumn;                    // Indeks ostatniej kolumny (exclusive)
+    private int endColumn;                    // Indeks ostatniej kolumny
     private int numberOfRows;                 // Liczba wierszy tablicy
     private int numberOfColumns;              // Liczba kolumn tablicy
     private int[] localHistogram;             // Lokalny histogram dla tego wątku
 
     // Konstruktor wątku
     // startRow - indeks pierwszego wiersza bloku
-    // endRow - indeks ostatniego wiersza bloku (exclusive)
+    // endRow - indeks ostatniego wiersza bloku
     // startColumn - indeks pierwszej kolumny bloku
-    // endColumn - indeks ostatniej kolumny bloku (exclusive)
+    // endColumn - indeks ostatniej kolumny bloku
     // image - obiekt obrazu zawierający dane do przetworzenia
     public Watek5_Runnable(int startRow, int endRow, int startColumn, int endColumn, Obraz image) {
         this.startRow = startRow;
@@ -33,7 +28,7 @@ public class Watek5_Runnable implements Runnable {
         this.histogram = image.getHistogram();
         this.numberOfRows = image.getSize_n();
         this.numberOfColumns = image.getSize_m();
-        this.localHistogram = new int[image.getNumChars()];  // Lokalny bufor zmniejsza rywalizację o blokadę
+        this.localHistogram = new int[image.getNumChars()];
     }
 
     @Override

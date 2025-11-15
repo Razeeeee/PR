@@ -1,56 +1,3 @@
-================================================================================
-OPIS WARIANTÓW WIELOWĄTKOWEGO OBLICZANIA HISTOGRAMU
-================================================================================
-
-WARIANT 1 - Thread: Jeden wątek na znak
---------------------------------------------------------------------------------
-Strategia: Każdy wątek zlicza wystąpienia jednego konkretnego znaku ASCII w
-           całej tablicy.
-Zalety: Prosta implementacja, automatyczna równowaga obciążenia
-Wady: Maksymalnie 94 wątki (ograniczenie liczby znaków ASCII 33-126)
-Zastosowanie: Małe obrazy lub gdy liczba znaków jest zbliżona do liczby wątków
-
-
-WARIANT 2 - Runnable: Podział 1D blokowy po znakach
---------------------------------------------------------------------------------
-Strategia: Znaki ASCII są dzielone na ciągłe bloki. Każdy wątek przetwarza
-           przydzielony zakres znaków (np. wątek 0: znaki 0-23, wątek 1: 24-47)
-Zalety: Elastyczna liczba wątków, dobra skalowalność
-Wady: Możliwe nierównomierne obciążenie przy nierównomiernym rozkładzie znaków
-Zastosowanie: Gdy chcemy więcej elastyczności niż w wariancie 1
-
-
-WARIANT 3 - Runnable: Podział cykliczny wierszowy
---------------------------------------------------------------------------------
-Strategia: Wiersze przydzielane cyklicznie (round-robin). Wątek 0 przetwarza
-           wiersze 0, n, 2n... Wątek 1 przetwarza wiersze 1, n+1, 2n+1...
-Zalety: Doskonała równowaga obciążenia, unikanie nierównomierności danych
-Wady: Gorsze wykorzystanie cache procesora (przeskakiwanie między wierszami)
-Zastosowanie: Gdy dane są nierównomiernie rozłożone w tablicy
-
-
-WARIANT 4 - Runnable: Podział kolumnowy blokowy
---------------------------------------------------------------------------------
-Strategia: Kolumny dzielone na ciągłe bloki. Każdy wątek przetwarza przydzielony
-           zakres kolumn dla wszystkich wierszy.
-Zalety: Dobra lokalność danych w pamięci, minimalna synchronizacja
-Wady: Możliwe nierównomierne obciążenie przy nieregularnych danych
-Zastosowanie: Tablice przechowywane wierszowo w pamięci (Java)
-
-
-WARIANT 5 - Runnable: Podział 2D blokowy
---------------------------------------------------------------------------------
-Strategia: Tablica dzielona na prostokątne bloki 2D. Każdy wątek przetwarza
-           przydzielony prostokątny fragment (zakres wierszy i kolumn).
-Zalety: Najlepsza lokalność danych, optymalne wykorzystanie cache CPU
-Wady: Wymaga starannego doboru liczby wątków (idealnie kwadraty: 4, 9, 16...)
-Zastosowanie: Duże tablice, systemy z hierarchiczną pamięcią cache
-
-
-================================================================================
-PORÓWNANIE: THREAD vs RUNNABLE
-================================================================================
-
 THREAD (extends Thread):
 - Klasa dziedziczy po klasie Thread
 - Metoda run() jest nadpisywana (@Override)
@@ -73,11 +20,6 @@ WNIOSKI:
 Runnable jest bardziej elastyczny i zgodny z zasadą "preferuj kompozycję
 nad dziedziczeniem". Thread jest prostszy dla początkujących, ale ogranicza
 możliwości projektowe.
-
-
-================================================================================
-PORÓWNANIE: run() vs start()
-================================================================================
 
 start():
 - Uruchamia nowy wątek systemu operacyjnego

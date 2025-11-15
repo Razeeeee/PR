@@ -1,10 +1,5 @@
 import  java.util.Random;
 
-// Klasa reprezentująca obraz jako tablicę 2D znaków ASCII.
-//
-// Obraz składa się z losowo wygenerowanych znaków ASCII (33-126, czyli 94 znaki).
-// Klasa umożliwia obliczanie histogramu (liczby wystąpień każdego znaku)
-// zarówno sekwencyjnie jak i przez zewnętrzne wątki (za pomocą getterów).
 public class Obraz {
 
     private int numberOfRows;             // Liczba wierszy tablicy
@@ -14,7 +9,6 @@ public class Obraz {
     private int[] histogram;              // Histogram - tablica z liczbą wystąpień każdego znaku
     private int numberOfCharacters;       // Liczba różnych znaków używanych (dla wariantu 1)
 
-    // Konstruktor - tworzy obraz o zadanych wymiarach i wypełnia go losowymi znakami
     // rows - liczba wierszy
     // columns - liczba kolumn
     // numberOfThreads - liczba wątków (określa ile różnych znaków będzie użytych)
@@ -143,7 +137,6 @@ public class Obraz {
 	System.out.println("Total unique characters found: " + count);
     }
 
-    // Gettery - umożliwiają wątkom dostęp do danych obrazu
     public int getSize_n() { return numberOfRows; }
     public int getSize_m() { return numberOfColumns; }
     public char[][] getTab() { return imageTable; }

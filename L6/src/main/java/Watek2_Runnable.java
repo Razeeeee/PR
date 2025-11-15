@@ -1,22 +1,16 @@
-// Wariant 2: Runnable - podział 1D blokowy po znakach
-//
-// Strategia: Znaki ASCII są dzielone na bloki. Każdy wątek przetwarza
+// Znaki ASCII są dzielone na bloki. Każdy wątek przetwarza
 // ciągły zakres znaków (np. wątek 0: znaki 0-23, wątek 1: znaki 24-47, itd.)
-//
-// Zalety: Elastyczna liczba wątków, dobra skalowalność
-// Wady: Może wystąpić nierównomierne obciążenie jeśli niektóre znaki występują częściej
 public class Watek2_Runnable implements Runnable {
     private char[][] imageTable;              // Tablica 2D ze znakami obrazu
     private char[] symbolsArray;              // Tablica symboli ASCII (94 znaki)
     private int[] histogram;                  // Wspólny histogram (tablica wyników)
     private int startCharacterIndex;          // Indeks pierwszego znaku do zliczenia
-    private int endCharacterIndex;            // Indeks ostatniego znaku (exclusive)
+    private int endCharacterIndex;            // Indeks ostatniego znaku
     private int numberOfRows;                 // Liczba wierszy tablicy
     private int numberOfColumns;              // Liczba kolumn tablicy
 
-    // Konstruktor wątku
     // startCharacterIndex - indeks pierwszego znaku do przetworzenia
-    // endCharacterIndex - indeks ostatniego znaku (exclusive)
+    // endCharacterIndex - indeks ostatniego znaku
     // image - obiekt obrazu zawierający dane do przetworzenia
     public Watek2_Runnable(int startCharacterIndex, int endCharacterIndex, Obraz image) {
         this.startCharacterIndex = startCharacterIndex;
