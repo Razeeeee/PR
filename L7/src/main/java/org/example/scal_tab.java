@@ -25,10 +25,10 @@ class DivideTask extends RecursiveTask<int[]> {
         DivideTask task1 = new DivideTask(left);
         DivideTask task2 = new DivideTask(right);
 
-        // Fork one task and compute the other to avoid deadlock
-        task1.fork();
-        int[] tab2 = task2.compute();
+        // ForkJoinTask.invokeAll will fork both tasks and wait for their completion
+        java.util.concurrent.ForkJoinTask.invokeAll(task1, task2);
         int[] tab1 = task1.join();
+        int[] tab2 = task2.join();
 
         int[] scal_tab = new int[arrayToDivide.length];
 

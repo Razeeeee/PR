@@ -1,7 +1,9 @@
 package org.example;
 
-public class HistogramRunnable implements Runnable {
-    
+import java.util.concurrent.Callable;
+
+public class HistogramCallable implements Callable<int[]> {
+
     private int[] data;
     private int startIndex;
     private int endIndex;
@@ -9,8 +11,8 @@ public class HistogramRunnable implements Runnable {
     private int numBins;
     private int minValue;
     private int maxValue;
-    
-    public HistogramRunnable(int[] data, int startIndex, int endIndex, 
+
+    public HistogramCallable(int[] data, int startIndex, int endIndex,
                             int numBins, int minValue, int maxValue) {
         this.data = data;
         this.startIndex = startIndex;
@@ -20,9 +22,9 @@ public class HistogramRunnable implements Runnable {
         this.maxValue = maxValue;
         this.localHistogram = new int[numBins];
     }
-    
+
     @Override
-    public void run() {
+    public int[] call() {
         for (int i = startIndex; i < endIndex; i++) {
             int value = data[i];
             if (value >= minValue && value <= maxValue) {
@@ -31,9 +33,7 @@ public class HistogramRunnable implements Runnable {
                 localHistogram[bin]++;
             }
         }
-    }
-    
-    public int[] getLocalHistogram() {
+
         return localHistogram;
     }
 }
