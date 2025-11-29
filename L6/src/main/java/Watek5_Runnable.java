@@ -1,16 +1,14 @@
 // Tablica jest dzielona na prostokątne bloki 2D. Każdy wątek
 // przetwarza przydzielony blok (zakres wierszy i kolumn)
 public class Watek5_Runnable implements Runnable {
-  private char[][] imageTable;              // Tablica 2D ze znakami obrazu
-  private char[] symbolsArray;              // Tablica symboli ASCII (94 znaki)
-  private int[] histogram;                  // Wspólny histogram (tablica wyników)
-  private int startRow;                     // Indeks pierwszego wiersza do przetworzenia
-  private int endRow;                       // Indeks ostatniego wiersza
-  private int startColumn;                  // Indeks pierwszej kolumny do przetworzenia
-  private int endColumn;                    // Indeks ostatniej kolumny
-  private int numberOfRows;                 // Liczba wierszy tablicy
-  private int numberOfColumns;              // Liczba kolumn tablicy
-  private int[] localHistogram;             // Lokalny histogram dla tego wątku
+  private char[][] imageTable; // Tablica 2D ze znakami obrazu
+  private char[] symbolsArray; // Tablica symboli ASCII (94 znaki)
+  private int[] histogram; // Wspólny histogram (tablica wyników)
+  private int startRow; // Indeks pierwszego wiersza do przetworzenia
+  private int endRow; // Indeks ostatniego wiersza
+  private int startColumn; // Indeks pierwszej kolumny do przetworzenia
+  private int endColumn; // Indeks ostatniej kolumny
+  private int[] localHistogram; // Lokalny histogram dla tego wątku
 
   // Konstruktor wątku
   // startRow - indeks pierwszego wiersza bloku
@@ -26,8 +24,6 @@ public class Watek5_Runnable implements Runnable {
     this.imageTable = image.getTab();
     this.symbolsArray = image.getTab_symb();
     this.histogram = image.getHistogram();
-    this.numberOfRows = image.getSize_n();
-    this.numberOfColumns = image.getSize_m();
     this.localHistogram = new int[image.getNumChars()];
   }
 
@@ -38,14 +34,15 @@ public class Watek5_Runnable implements Runnable {
 
   @Override
   public void run() {
-    // Podział 2D blokowy: przetwarzaj tylko przydzielony prostokątny fragment tablicy
+    // Podział 2D blokowy: przetwarzaj tylko przydzielony prostokątny fragment
+    // tablicy
     for (int row = startRow; row < endRow; row++) {
       for (int col = startColumn; col < endColumn; col++) {
         // Zlicz wszystkie znaki w tym elemencie tablicy
-        int numberOfCharacters = symbolsArray.length;  // Liczba różnych znaków
+        int numberOfCharacters = symbolsArray.length; // Liczba różnych znaków
         for (int charIndex = 0; charIndex < numberOfCharacters; charIndex++) {
           if (imageTable[row][col] == symbolsArray[charIndex]) {
-            localHistogram[charIndex]++;  // Zapis do lokalnego histogramu
+            localHistogram[charIndex]++; // Zapis do lokalnego histogramu
           }
         }
       }
