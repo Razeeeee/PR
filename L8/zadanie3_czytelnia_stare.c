@@ -4,49 +4,45 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-// Monitor Czytelnia - ścisła kolejność przemienna
-// Schemat: Pisarz1 -> Wszyscy czytelnicy -> Pisarz2 -> Wszyscy czytelnicy -> ...
+// Monitor Czytelnia - przemienne pierwszeństwo
+// Najpierw jeden pisarz, potem wszyscy czytelnicy, potem jeden pisarz...
 typedef struct {
     int liczba_czyt;           // Liczba aktywnie czytających
     int liczba_pisz;           // Liczba aktywnie piszących (0 lub 1)
-    int czytelnicy_czekajacy;  // Liczba czytelników oczekujących na wejście
-    int czytelnicy_gotowi;     // Liczba czytelników, którzy skończyli czytać w tej rundzie
-    int faza;                  // Numer aktualnej fazy (0-5, czyli 6 faz)
-    bool kolej_pisarzy;        // true = pisarz może pisać, false = czytelnicy mogą czytać
+    int czekajacy_pisarze;     // Liczba czekających pisarzy
+    int czekajacy_czytelnicy;  // Liczba czekających czytelników
+    bool kolej_pisarzy;        // true = kolej pisarzy, false = kolej czytelników
     pthread_mutex_t mutex;
     pthread_cond_t czytelnicy;
     pthread_cond_t pisarze;
 } czytelnia_t;
 
 czytelnia_t czytelnia;
-const int LICZBA_CZYTELNIKOW = 5;
-const int LICZBA_FAZ = 6;
 
-void chce_pisac(int id) {
+void chce_pisac() {
     pthread_mutex_lock(&czytelnia.mutex);
     
-    printf("Pisarz %d chce pisac\n", id);
+    czytelnia.czekajacy_pisarze++;
     
-    // Pisarz czeka, aż będzie jego kolej
-    while (!czytelnia.kolej_pisarzy || czytelnia.liczba_czyt > 0 || czytelnia.liczba_pisz > 0) {
+    // Pisarz czeka dopóki:
+    // - ktoś czyta lub pisze LUB
+    // - nie ma kolejki dla pisarzy
+    while (czytelnia.liczba_czyt > 0 || czytelnia.liczba_pisz > 0 || 
+           !czytelnia.kolej_pisarzy) {
         pthread_cond_wait(&czytelnia.pisarze, &czytelnia.mutex);
     }
     
     czytelnia.liczba_pisz = 1;
-    printf("\n=== FAZA %d ===\n", czytelnia.faza);
-    printf("Pisarz %d pisze\n", id);
+    czytelnia.czekajacy_pisarze--;
     
     pthread_mutex_unlock(&czytelnia.mutex);
 }
 
-void koniec_pisania(int id) {
+void koniec_pisania() {
     pthread_mutex_lock(&czytelnia.mutex);
     
     czytelnia.liczba_pisz = 0;
     czytelnia.kolej_pisarzy = false; // Teraz kolej czytelników
-    czytelnia.czytelnicy_gotowi = 0; // Reset licznika gotowych czytelników
-    
-    printf("Pisarz %d skonczyl -> budzenie czytelnikow\n", id);
     
     // Budzi WSZYSTKICH czytelników
     pthread_cond_broadcast(&czytelnia.czytelnicy);
@@ -54,42 +50,39 @@ void koniec_pisania(int id) {
     pthread_mutex_unlock(&czytelnia.mutex);
 }
 
-void chce_czytac(int id) {
+void chce_czytac() {
     pthread_mutex_lock(&czytelnia.mutex);
     
-    czytelnia.czytelnicy_czekajacy++;
+    czytelnia.czekajacy_czytelnicy++;
     
-    printf("Czytelnik %d chce czytac\n", id);
-    
-    // Czytelnik czeka, aż będzie kolej czytelników i pisarz skończy
-    while (czytelnia.kolej_pisarzy || czytelnia.liczba_pisz > 0) {
+    // Czytelnik czeka dopóki:
+    // - ktoś pisze LUB
+    // - jest kolejka dla pisarzy
+    while (czytelnia.liczba_pisz > 0 || czytelnia.kolej_pisarzy) {
         pthread_cond_wait(&czytelnia.czytelnicy, &czytelnia.mutex);
     }
     
-    czytelnia.liczba_czyt++;
-    czytelnia.czytelnicy_czekajacy--;
+    // Pierwszy czytelnik zmienia kolejkę na pisarzy (blokuje nowych czytelników)
+    if (czytelnia.liczba_czyt == 0) {
+        czytelnia.kolej_pisarzy = true;
+    }
     
-    printf("Czytelnik %d czyta\n", id);
+    czytelnia.liczba_czyt++;
+    czytelnia.czekajacy_czytelnicy--;
+    
+    // Każdy czytelnik budzi kolejnych (wszyscy czytają razem)
+    pthread_cond_broadcast(&czytelnia.czytelnicy);
     
     pthread_mutex_unlock(&czytelnia.mutex);
 }
 
-void koniec_czytania(int id) {
+void koniec_czytania() {
     pthread_mutex_lock(&czytelnia.mutex);
     
     czytelnia.liczba_czyt--;
-    czytelnia.czytelnicy_gotowi++;
     
-    printf("Czytelnik %d skonczyl [%d/%d]\n", 
-           id, czytelnia.czytelnicy_gotowi, LICZBA_CZYTELNIKOW);
-    
-    // Sprawdź czy WSZYSCY czytelnicy skończyli czytać
-    if (czytelnia.czytelnicy_gotowi == LICZBA_CZYTELNIKOW) {
-        czytelnia.faza++;
-        czytelnia.kolej_pisarzy = true; // Teraz kolej pisarza
-        
-        printf("Wszyscy skonczone -> budzenie pisarza\n\n");
-        
+    // Ostatni czytelnik budzi pisarza
+    if (czytelnia.liczba_czyt == 0) {
         // Budzi JEDNEGO pisarza
         pthread_cond_signal(&czytelnia.pisarze);
     }
@@ -100,16 +93,17 @@ void koniec_czytania(int id) {
 void* czytelnik(void* arg) {
     int id = *(int*)arg;
     
-    // Każdy czytelnik czyta 6 razy (po każdym pisarzu z 2 pisarzy × 3 iteracje = 6)
-    for (int i = 0; i < LICZBA_FAZ; i++) {
-        chce_czytac(id);
+    for (int i = 0; i < 3; i++) {
+        printf("Czytelnik %d: chce czytac\n", id);
+        chce_czytac();
         
+        printf("Czytelnik %d: CZYTAM (iteracja %d)\n", id, i+1);
         sleep(1);
         
-        koniec_czytania(id);
+        koniec_czytania();
+        printf("Czytelnik %d: koniec czytania\n", id);
         
-        // Krótka przerwa przed następną rundą
-        usleep(100000); // 0.1s
+        sleep(rand() % 2);
     }
     
     return NULL;
@@ -118,39 +112,38 @@ void* czytelnik(void* arg) {
 void* pisarz(void* arg) {
     int id = *(int*)arg;
     
-    // Każdy pisarz pisze 3 razy
     for (int i = 0; i < 3; i++) {
-        chce_pisac(id);
+        printf("Pisarz %d: chce pisac\n", id);
+        chce_pisac();
         
+        printf("Pisarz %d: PISZE (iteracja %d)\n", id, i+1);
         sleep(2);
         
-        koniec_pisania(id);
+        koniec_pisania();
+        printf("Pisarz %d: koniec pisania\n", id);
         
-        // Krótka przerwa
-        usleep(100000);
+        sleep(rand() % 2);
     }
     
     return NULL;
 }
 
 int main() {
+    const int LICZBA_CZYTELNIKOW = 5;
     const int LICZBA_PISARZY = 2;
     pthread_t czyt[LICZBA_CZYTELNIKOW];
     pthread_t pis[LICZBA_PISARZY];
     int czyt_ids[LICZBA_CZYTELNIKOW];
     int pis_ids[LICZBA_PISARZY];
     
-    printf("=== CZYTELNIA ===\n");
-    printf("Czytelnikow: %d | Pisarzy: %d\n", LICZBA_CZYTELNIKOW, LICZBA_PISARZY);
-    printf("Pisarz pisze -> wszyscy czytaja -> Pisarz pisze -> wszyscy czytaja\n");
-    printf("=================\n\n");
+    printf("=== Implementacja czytelni - przemienne pierwszenstwo ===\n");
+    printf("Czytelnikow: %d, Pisarzy: %d\n\n", LICZBA_CZYTELNIKOW, LICZBA_PISARZY);
     
     // Inicjalizacja monitora
     czytelnia.liczba_czyt = 0;
     czytelnia.liczba_pisz = 0;
-    czytelnia.czytelnicy_czekajacy = 0;
-    czytelnia.czytelnicy_gotowi = 0;
-    czytelnia.faza = 0;
+    czytelnia.czekajacy_pisarze = 0;
+    czytelnia.czekajacy_czytelnicy = 0;
     czytelnia.kolej_pisarzy = true; // Zaczynamy od pisarza!
     pthread_mutex_init(&czytelnia.mutex, NULL);
     pthread_cond_init(&czytelnia.czytelnicy, NULL);
@@ -180,7 +173,7 @@ int main() {
     pthread_cond_destroy(&czytelnia.czytelnicy);
     pthread_cond_destroy(&czytelnia.pisarze);
     
-    printf("\n=== KONIEC - %d faz ===\n", czytelnia.faza);
+    printf("\n=== Wszystkie watki zakonczone ===\n");
     
     return 0;
 }
