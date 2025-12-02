@@ -1,9 +1,11 @@
+#define _XOPEN_SOURCE 800
+// ^ Żeby nie wywalało warning z pthread_rwlock_t
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
 
-// Czytelnia wykorzystująca dedykowane zamki do zapisu i odczytu
 pthread_rwlock_t rwlock;
 
 void* czytelnik(void* arg) {
