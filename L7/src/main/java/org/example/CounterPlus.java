@@ -1,5 +1,7 @@
+package org.example;
+
 public class CounterPlus implements Runnable {
-    
+
   private Counter counter;
 
   public CounterPlus(Counter counter) {
@@ -10,10 +12,10 @@ public class CounterPlus implements Runnable {
 
     for (int i = 0; i < 10; i++) {
 
-	counter.inc1();
-	counter.inc2();
-	counter.inc1();
-	counter.inc2();
+      counter.inc1();
+      counter.inc2();
+      counter.inc1();
+      counter.inc2();
 
     }
   }

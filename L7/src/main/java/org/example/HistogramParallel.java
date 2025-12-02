@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 public class HistogramParallel {
 
@@ -24,8 +23,10 @@ public class HistogramParallel {
         this.minValue = data[0];
         this.maxValue = data[0];
         for (int value : data) {
-            if (value < minValue) minValue = value;
-            if (value > maxValue) maxValue = value;
+            if (value < minValue)
+                minValue = value;
+            if (value > maxValue)
+                maxValue = value;
         }
     }
 
@@ -39,9 +40,8 @@ public class HistogramParallel {
             int startIndex = i * segmentSize;
             int endIndex = (i == numThreads - 1) ? data.length : (i + 1) * segmentSize;
 
-          HistogramCallable task = new HistogramCallable(
-                data, startIndex, endIndex, numBins, minValue, maxValue
-            );
+            HistogramCallable task = new HistogramCallable(
+                    data, startIndex, endIndex, numBins, minValue, maxValue);
 
             Future<int[]> future = executor.submit(task);
             futures.add(future);
@@ -70,8 +70,7 @@ public class HistogramParallel {
             int rangeStart = minValue + i * binWidth;
             int rangeEnd = (i == numBins - 1) ? maxValue : rangeStart + binWidth - 1;
             System.out.printf("[%4d - %4d]: %s (%d)\n",
-                rangeStart, rangeEnd, "*".repeat(Math.min(histogram[i], 50)), histogram[i]);
+                    rangeStart, rangeEnd, "*".repeat(Math.min(histogram[i], 50)), histogram[i]);
         }
     }
 }
-

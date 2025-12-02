@@ -6,10 +6,11 @@ import java.util.concurrent.ForkJoinPool;
 public class MergeSortDemo {
 
     public static int[] sortWithForkJoin(int[] array) {
-        ForkJoinPool pool = new ForkJoinPool();
-        int[] result = pool.invoke(new DivideTask(array));
-        pool.shutdown();
-        return result;
+        try (ForkJoinPool pool = new ForkJoinPool()) {
+            int[] result = pool.invoke(new DivideTask(array));
+            pool.shutdown();
+            return result;
+        }
     }
 
     public static void demonstrateSorting(int[] array) {
@@ -23,4 +24,3 @@ public class MergeSortDemo {
         System.out.println("Time taken: " + (endTime - startTime) + " ms");
     }
 }
-
